@@ -12,7 +12,7 @@ import { connectBotAction, removeBotAction } from "@/app/actions";
 export type BotsOverview = {
   plan: PlanKey;
   usage: Usage;
-  bots: { id: string; type: string; name: string; status: string; paused: boolean }[];
+  bots: { id: string; type: string; name: string; status: string; error: string | null; paused: boolean }[];
 };
 
 const TYPE_LABEL = (type: string, locale: "en" | "tr") =>
@@ -112,6 +112,7 @@ export function BotsPage({ overview }: { overview: BotsOverview }) {
                 <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-xs text-muted">{TYPE_LABEL(bot.type, locale)}</span>
               </p>
               {bot.paused && <p className="mt-0.5 text-xs text-warn">{b.pausedHint}</p>}
+              {bot.error && !bot.paused && <p className="mt-0.5 text-xs text-bad">{b.startErrors[bot.error] ?? `${b.startErrors.UNKNOWN} (${bot.error})`}</p>}
             </div>
             {bot.paused ? (
               <span className="rounded-full bg-warn/15 px-2.5 py-0.5 text-xs font-medium text-warn">{b.paused}</span>

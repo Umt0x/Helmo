@@ -194,6 +194,11 @@ export const en = {
     paused: "Paused by plan",
     pausedHint: "Your plan allows fewer bots now. Upgrade to bring it back.",
     statuses: { offline: "Offline", online: "Online", error: "Error" } as Record<string, string>,
+    startErrors: {
+      DisallowedIntents: "Switch on Server Members Intent and Message Content Intent for this bot in the Discord Developer Portal (Bot tab), then it will start by itself.",
+      TokenInvalid: "Discord no longer accepts this token. Reset it in the Developer Portal and add the new one.",
+      UNKNOWN: "The bot could not start",
+    } as Record<string, string>,
     upgrade: "Upgrade your plan to add more.",
     errors: {
       unknown_type: "That bot type does not exist.",

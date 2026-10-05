@@ -108,6 +108,7 @@ export async function botOverview(ownerId: string) {
       type: b.type,
       name: b.name,
       status: effectiveStatus(b.status, seen.get(b.id) ?? null),
+      error: b.status === "error" ? b.lastError : null,
       paused: pausedIds.has(b.id),
     })),
   };

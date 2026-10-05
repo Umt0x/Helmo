@@ -196,6 +196,11 @@ export const tr: Dictionary = {
     paused: "Plan nedeniyle duraklatıldı",
     pausedHint: "Planın artık daha az bota izin veriyor. Planı yükseltince geri gelir.",
     statuses: { offline: "Çevrimdışı", online: "Çevrimiçi", error: "Hata" } as Record<string, string>,
+    startErrors: {
+      DisallowedIntents: "Discord Developer Portal'da (Bot sekmesi) bu botun Server Members Intent ve Message Content Intent izinlerini aç, bot kendiliğinden başlayacak.",
+      TokenInvalid: "Discord bu tokeni artık kabul etmiyor. Developer Portal'dan sıfırlayıp yenisini ekle.",
+      UNKNOWN: "Bot başlatılamadı",
+    } as Record<string, string>,
     upgrade: "Daha fazla eklemek için planını yükselt.",
     errors: {
       unknown_type: "Böyle bir bot türü yok.",

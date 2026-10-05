@@ -69,6 +69,8 @@ export const bots = pgTable(
     tokenEnc: text("token_enc").notNull(),
     /** offline | online | error. Written by the bot runtime. */
     status: text("status").notNull().default("offline"),
+    /** Why the bot could not start (e.g. DisallowedIntents, TokenInvalid), shown in the panel. Cleared when it comes online. */
+    lastError: text("last_error"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [uniqueIndex("bots_discord_bot_id_idx").on(t.discordBotId)],

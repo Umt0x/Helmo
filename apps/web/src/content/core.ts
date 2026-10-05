@@ -135,10 +135,26 @@ export const corePages: Record<string, PageDef> = {
   "bot-settings/prefix": {
     sections: [
       {
-        title: T("Prefix & language", "Önek & dil"),
+        title: T("Text commands", "Yazılı komutlar"),
+        desc: T(
+          "Members can type commands like !mute @user. Leave the prefix empty to switch text commands off.",
+          "Üyeler !mute @üye gibi yazarak komut kullanabilir. Öneki boş bırakırsan yazılı komutlar kapanır.",
+        ),
         rows: [
-          { id: "prefix", type: "text", label: T("Command prefix", "Komut öneki"), desc: T("Used for text commands.", "Metin komutları için kullanılır."), def: "!" },
-          { id: "slash", type: "toggle", label: T("Slash commands", "Slash komutları"), def: true },
+          { id: "prefix", type: "text", label: T("Command prefix", "Komut öneki"), desc: T("For example ! or . or ?", "Örneğin ! veya . veya ?"), def: "!" },
+          {
+            id: "reactions",
+            type: "select",
+            label: T("✅ / ❌ reactions", "✅ / ❌ tepkileri"),
+            desc: T("The bot reacts to the command message: ✅ if it worked, ❌ if it did not.", "Bot komut mesajına tepki verir: olduysa ✅, olmadıysa ❌."),
+            options: [T("Off", "Kapalı"), T("Staff commands only", "Sadece yetkili komutları"), T("All commands", "Tüm komutlar")],
+            def: 1,
+          },
+        ],
+      },
+      {
+        title: T("Language & region", "Dil & bölge"),
+        rows: [
           { id: "lang", type: "select", label: T("Bot language", "Bot dili"), options: ["Türkçe", "English"], def: 0 },
           { id: "tz", type: "select", label: T("Time zone", "Saat dilimi"), options: ["Europe/Istanbul (UTC+3)", "UTC", "Europe/London", "America/New_York"], def: 0 },
         ],

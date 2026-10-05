@@ -44,19 +44,36 @@ export const serverPages: Record<string, PageDef> = {
     sections: [
       {
         title: T("Welcome message", "Karşılama mesajı"),
+        desc: T(
+          "Sent when someone joins. Variables: {user} {username} {server} {count} {created} {createdAgo} {rules} {voice}",
+          "Biri katılınca gönderilir. Değişkenler: {user} {username} {server} {count} {created} {createdAgo} {rules} {voice}",
+        ),
         glow: "green",
         rows: [
-          { id: "on", type: "toggle", label: T("Send welcome message", "Karşılama mesajı gönder"), def: true },
-                    { id: "ch", type: "channel", label: T("Channel", "Kanal"), def: "" },
-          { id: "text", type: "text", label: T("Message", "Mesaj"), def: "Welcome {user} to {server}!" },
+          { id: "on", type: "toggle", label: T("Send a welcome message", "Karşılama mesajı gönder"), def: true },
+          { id: "ch", type: "channel", label: T("Channel", "Kanal"), def: "" },
+          { id: "mode", type: "select", label: T("Format", "Biçim"), options: [T("Panel (styled)", "Panel (şık)"), T("Plain text", "Düz yazı")], def: 0 },
+          {
+            id: "text",
+            type: "textarea",
+            label: T("Your own text", "Kendi metnin"),
+            desc: T("Leave empty to use the built-in welcome.", "Boş bırakırsan hazır karşılama kullanılır."),
+            def: "",
+            placeholder: T("{user}, welcome to {server}! We are now {count} members.", "{user}, {server} sunucusuna hoş geldin! Artık {count} kişiyiz."),
+          },
+          { id: "rules", type: "channel", label: T("Rules channel", "Kurallar kanalı"), desc: T("Mentioned in the built-in welcome.", "Hazır karşılamada etiketlenir."), def: "" },
+          { id: "voice", type: "channel", kind: "voice", label: T("Registration voice channel", "Kayıt ses kanalı"), desc: T("Mentioned in the built-in welcome.", "Hazır karşılamada etiketlenir."), def: "" },
           { id: "dm", type: "toggle", label: T("Also send by DM", "Ayrıca DM ile gönder"), def: false },
+          { id: "del", type: "number", label: T("Delete after", "Şu süre sonra sil"), desc: T("0 keeps the message.", "0 mesajı silmez."), def: 0, unit: T("seconds", "saniye"), min: 0, max: 3600 },
         ],
       },
       {
         title: T("Leave message", "Ayrılma mesajı"),
+        desc: T("Sent when someone leaves. Variables: {username} {server} {count}", "Biri ayrılınca gönderilir. Değişkenler: {username} {server} {count}"),
         rows: [
-          { id: "loff", type: "toggle", label: T("Send leave message", "Ayrılma mesajı gönder"), def: false },
-          { id: "ltext", type: "text", label: T("Message", "Mesaj"), def: "{user} left the server." },
+          { id: "loff", type: "toggle", label: T("Send a leave message", "Ayrılma mesajı gönder"), def: false },
+          { id: "lch", type: "channel", label: T("Channel", "Kanal"), def: "" },
+          { id: "ltext", type: "textarea", label: T("Your own text", "Kendi metnin"), desc: T("Leave empty to use the built-in message.", "Boş bırakırsan hazır mesaj kullanılır."), def: "", placeholder: T("{username} left. We are {count} members.", "{username} ayrıldı. {count} kişiyiz.") },
         ],
       },
     ],
