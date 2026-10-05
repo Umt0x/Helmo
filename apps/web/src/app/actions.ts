@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { connectBot, removeBot } from "@/lib/bots";
 import { getCurrentGuild, getUser } from "@/lib/session";
 import { isKnownPage, saveSettings } from "@/lib/settings";
 
@@ -20,4 +22,32 @@ export async function savePage(page: string, input: unknown): Promise<SaveResult
     console.error("Saving settings failed:", err);
     return { ok: false, error: "failed" };
   }
+}
+
+export type BotActionResult =
+  | { ok: true }
+  | { ok: false; error: string; limit?: number };
+
+/** Connects a bot to the logged-in account. Plan limits are checked on the server. */
+export async function connectBotAction(type: string, token: string): Promise<BotActionResult> {
+  const user = await getUser();
+  if (!user) return { ok: false, error: "auth" };
+  try {
+    const res = await connectBot(user.id, type, token);
+    if (!res.ok) return { ok: false, error: res.error, limit: res.limit };
+    revalidatePath("/dashboard/bot-settings/bots");
+    return { ok: true };
+  } catch (err) {
+    console.error("Connecting bot failed:", err);
+    return { ok: false, error: "failed" };
+  }
+}
+
+export async function removeBotAction(botId: string): Promise<BotActionResult> {
+  const user = await getUser();
+  if (!user) return { ok: false, error: "auth" };
+  const removed = await removeBot(user.id, botId);
+  if (!removed) return { ok: false, error: "failed" };
+  revalidatePath("/dashboard/bot-settings/bots");
+  return { ok: true };
 }

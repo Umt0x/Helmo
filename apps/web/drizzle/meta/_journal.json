@@ -15,6 +15,13 @@
       "when": 1791222840203,
       "tag": "0001_glossy_doctor_doom",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791225331721,
+      "tag": "0002_curvy_bloodstorm",
+      "breakpoints": true
     }
   ]
 }

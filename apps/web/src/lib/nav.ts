@@ -53,6 +53,7 @@ export const coreNav: NavItem[] = [
     href: "bot-settings",
     icon: Bot,
     children: [
+      { key: "botList", href: "bot-settings/bots" },
       { key: "botProfile", href: "bot-settings/profile" },
       { key: "botStatus", href: "bot-settings/status" },
       { key: "botPrefix", href: "bot-settings/prefix" },
