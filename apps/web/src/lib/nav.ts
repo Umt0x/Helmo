@@ -123,6 +123,8 @@ export const serverNav: NavItem[] = [
       { key: "punishRules", href: "punishments/rules" },
       { key: "punishWarn", href: "punishments/warns" },
       { key: "punishRoles", href: "punishments/roles" },
+      { key: "punishMessages", href: "punishments/messages" },
+      { key: "punishRecords", href: "punishments/records" },
     ],
   },
   {

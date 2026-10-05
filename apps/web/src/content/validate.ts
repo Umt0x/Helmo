@@ -28,6 +28,12 @@ function sanitizeRow(row: Row, input: unknown): Value {
       return typeof input === "string" ? input.trim().slice(0, 500) : row.def;
     case "secret":
       return typeof input === "string" ? input.trim().slice(0, 300) : "";
+    case "role":
+    case "channel":
+      // Discord ids are plain numbers. Whether the id really belongs to this server is checked when saving.
+      return typeof input === "string" && /^\d{1,25}$/.test(input) ? input : "";
+    case "textarea":
+      return typeof input === "string" ? input.trim().slice(0, 1500) : row.def;
     case "chips": {
       if (!Array.isArray(input)) return row.def;
       const ok = input.filter((i): i is number => Number.isInteger(i) && i >= 0 && i < row.options.length);

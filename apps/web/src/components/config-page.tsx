@@ -5,7 +5,7 @@ import { Check, Copy, Eye, EyeOff, Plus } from "lucide-react";
 import clsx from "clsx";
 import { useI18n } from "@/i18n/provider";
 import type { Locale } from "@/i18n/config";
-import type { Cell, Glow, PageDef, Row, Section, Stat, Table, Tone, Txt } from "@/content/types";
+import { TEXT_CHANNEL_TYPES, VOICE_CHANNEL_TYPES, type Cell, type Choices, type Glow, type PageDef, type Row, type Section, type Stat, type Table, type Tone, type Txt } from "@/content/types";
 import { MASK, type Value } from "@/content/validate";
 import { SaveBar } from "./save-bar";
 import { Toggle } from "./toggle";
@@ -24,14 +24,18 @@ function glowClass(g?: Glow) {
   return g ? `glow-${g}` : "";
 }
 
+const NO_CHOICES: Choices = { roles: [], channels: [] };
+
 export function ConfigPage({
   page,
   pageKey,
   initial,
+  choices = NO_CHOICES,
 }: {
   page: PageDef;
   pageKey: string;
   initial: Record<string, Value>;
+  choices?: Choices;
 }) {
   const { locale } = useI18n();
   const form = useSaved(pageKey, initial);
@@ -59,7 +63,7 @@ export function ConfigPage({
       )}
 
       {page.sections.map((s, i) => (
-        <SectionCard key={i} section={s} values={form.values} set={set} locale={locale} />
+        <SectionCard key={i} section={s} values={form.values} set={set} locale={locale} choices={choices} />
       ))}
 
       <SaveBar
@@ -89,11 +93,13 @@ function SectionCard({
   values,
   set,
   locale,
+  choices,
 }: {
   section: Section;
   values: Record<string, Value>;
   set: (id: string, v: Value) => void;
   locale: Locale;
+  choices: Choices;
 }) {
   return (
     <section className={clsx("card", glowClass(section.glow))}>
@@ -109,7 +115,7 @@ function SectionCard({
             <p className="text-sm font-medium">{tx(r.label, locale)}</p>
             {r.desc && <p className="mt-0.5 text-sm text-muted">{tx(r.desc, locale)}</p>}
           </div>
-          <Control row={r} value={values[r.id]} onChange={(v) => set(r.id, v)} locale={locale} />
+          <Control row={r} value={values[r.id]} onChange={(v) => set(r.id, v)} locale={locale} choices={choices} />
         </div>
       ))}
       {section.table && <DataTable table={section.table} locale={locale} />}
@@ -122,11 +128,13 @@ function Control({
   value,
   onChange,
   locale,
+  choices,
 }: {
   row: Row;
   value: Value;
   onChange: (v: Value) => void;
   locale: Locale;
+  choices: Choices;
 }) {
   const label = tx(row.label, locale);
   switch (row.type) {
@@ -209,6 +217,51 @@ function Control({
     }
     case "secret":
       return <SecretField value={value as string} onChange={onChange} />;
+    case "role": {
+      const id = value as string;
+      // Bot and integration roles cannot be given to members, so they are not offered.
+      const roles = choices.roles.filter((r) => !r.managed);
+      const missing = id !== "" && !choices.roles.some((r) => r.id === id);
+      return (
+        <select className="field min-w-56" value={id} onChange={(e) => onChange(e.target.value)}>
+          <option value="">{locale === "tr" ? "— Seçilmedi —" : "— None —"}</option>
+          {missing && <option value={id}>{locale === "tr" ? "(silinmiş rol)" : "(deleted role)"}</option>}
+          {roles.map((r) => (
+            <option key={r.id} value={r.id}>
+              @{r.name}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    case "channel": {
+      const id = value as string;
+      const wanted = row.kind === "voice" ? VOICE_CHANNEL_TYPES : TEXT_CHANNEL_TYPES;
+      const list = choices.channels.filter((c) => wanted.includes(c.type));
+      const missing = id !== "" && !choices.channels.some((c) => c.id === id);
+      return (
+        <select className="field min-w-56" value={id} onChange={(e) => onChange(e.target.value)}>
+          <option value="">{locale === "tr" ? "— Seçilmedi —" : "— None —"}</option>
+          {missing && <option value={id}>{locale === "tr" ? "(silinmiş kanal)" : "(deleted channel)"}</option>}
+          {list.map((c) => (
+            <option key={c.id} value={c.id}>
+              {row.kind === "voice" ? "🔊 " : "# "}
+              {c.name}
+            </option>
+          ))}
+        </select>
+      );
+    }
+    case "textarea":
+      return (
+        <textarea
+          className="field h-auto min-h-28 w-full max-w-xl resize-y py-2.5 font-mono text-[13px] leading-relaxed"
+          rows={4}
+          value={value as string}
+          placeholder={row.placeholder ? tx(row.placeholder, locale) : undefined}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
   }
 }
 

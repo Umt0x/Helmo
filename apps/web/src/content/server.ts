@@ -5,7 +5,6 @@ const bad = (en: string, tr: string) => ({ badge: T(en, tr), tone: "bad" as cons
 const warn = (en: string, tr: string) => ({ badge: T(en, tr), tone: "warn" as const });
 const info = (en: string, tr: string) => ({ badge: T(en, tr), tone: "info" as const });
 
-const CHANNELS = ["#general", "#welcome", "#logs", "#announcements", "#bot-commands"];
 
 export const serverPages: Record<string, PageDef> = {
   system: {
@@ -33,8 +32,8 @@ export const serverPages: Record<string, PageDef> = {
         title: T("Server basics", "Sunucu temelleri"),
         rows: [
           { id: "name", type: "text", label: T("Display name", "Görünen ad"), def: "Umt Server" },
-          { id: "logs", type: "select", label: T("Log channel", "Log kanalı"), options: CHANNELS, def: 2 },
-          { id: "cmdch", type: "select", label: T("Command channel", "Komut kanalı"), options: CHANNELS, def: 4 },
+                    { id: "logs", type: "channel", label: T("Log channel", "Log kanalı"), desc: T("Where moderation logs are posted.", "Moderasyon kayıtlarının gönderileceği kanal."), def: "" },
+                    { id: "cmdch", type: "channel", label: T("Command channel", "Komut kanalı"), desc: T("Leave empty to allow commands everywhere.", "Boş bırakırsan komutlar her kanalda çalışır."), def: "" },
           { id: "embed", type: "toggle", label: T("Use embeds for replies", "Yanıtlarda embed kullan"), def: true },
           { id: "dmerr", type: "toggle", label: T("Send errors by DM", "Hataları DM ile gönder"), def: false },
         ],
@@ -48,7 +47,7 @@ export const serverPages: Record<string, PageDef> = {
         glow: "green",
         rows: [
           { id: "on", type: "toggle", label: T("Send welcome message", "Karşılama mesajı gönder"), def: true },
-          { id: "ch", type: "select", label: T("Channel", "Kanal"), options: CHANNELS, def: 1 },
+                    { id: "ch", type: "channel", label: T("Channel", "Kanal"), def: "" },
           { id: "text", type: "text", label: T("Message", "Mesaj"), def: "Welcome {user} to {server}!" },
           { id: "dm", type: "toggle", label: T("Also send by DM", "Ayrıca DM ile gönder"), def: false },
         ],
@@ -154,14 +153,35 @@ export const serverPages: Record<string, PageDef> = {
       },
     ],
   },
+  "punishments/messages": {
+    sections: [
+      {
+        title: T("Punishment messages", "Ceza mesajları"),
+        desc: T(
+          "Choose how the bot announces each punishment, and write your own text. Leave a text empty to use the built-in message. Variables: {user} {username} {moderator} {reason} {duration} {case} {count} {server}",
+          "Botun her cezayı nasıl duyuracağını seç ve kendi metnini yaz. Boş bırakırsan hazır mesaj kullanılır. Değişkenler: {user} {username} {moderator} {reason} {duration} {case} {count} {server}",
+        ),
+        rows: [
+          { id: "banMode", type: "select", label: T("Ban: format", "Yasak: biçim"), options: [T("Panel (styled)", "Panel (şık)"), T("Plain text", "Düz yazı")], def: 0 },
+          { id: "banText", type: "textarea", label: T("Ban: text", "Yasak: metin"), def: "", placeholder: T('{user} was banned for "{reason}". (Case #{case})', '{user} kullanıcısı "{reason}" sebebiyle yasaklandı. (Ceza Numarası: #{case})') },
+          { id: "kickMode", type: "select", label: T("Kick: format", "Atma: biçim"), options: [T("Panel (styled)", "Panel (şık)"), T("Plain text", "Düz yazı")], def: 0 },
+          { id: "kickText", type: "textarea", label: T("Kick: text", "Atma: metin"), def: "", placeholder: T('{user} was kicked for "{reason}". (Case #{case})', '{user} kullanıcısı "{reason}" sebebiyle atıldı. (Ceza Numarası: #{case})') },
+          { id: "muteMode", type: "select", label: T("Mute: format", "Susturma: biçim"), options: [T("Panel (styled)", "Panel (şık)"), T("Plain text", "Düz yazı")], def: 0 },
+          { id: "muteText", type: "textarea", label: T("Mute: text", "Susturma: metin"), def: "", placeholder: T('{user} was muted for {duration}: "{reason}". (Case #{case})', '{user} kullanıcısı "{reason}" sebebiyle {duration} süreyle susturuldu. (Ceza Numarası: #{case})') },
+          { id: "warnMode", type: "select", label: T("Warn: format", "Uyarı: biçim"), options: [T("Panel (styled)", "Panel (şık)"), T("Plain text", "Düz yazı")], def: 0 },
+          { id: "warnText", type: "textarea", label: T("Warn: text", "Uyarı: metin"), def: "", placeholder: T('{user} was warned for "{reason}" (warning {count}). (Case #{case})', '{user} kullanıcısı "{reason}" sebebiyle uyarıldı ({count}. uyarı). (Ceza Numarası: #{case})') },
+        ],
+      },
+    ],
+  },
   "punishments/roles": {
     sections: [
       {
         title: T("Mute & jail roles", "Susturma & hapis rolleri"),
         rows: [
-          { id: "muterole", type: "select", label: T("Mute role", "Susturma rolü"), options: ["@Muted", "@Silenced"], def: 0 },
-          { id: "jailrole", type: "select", label: T("Jail role", "Hapis rolü"), options: ["@Jailed", "@Restricted"], def: 0 },
-          { id: "jailch", type: "select", label: T("Jail channel", "Hapis kanalı"), options: ["#jail", "#timeout"], def: 0 },
+                    { id: "muterole", type: "role", label: T("Mute role", "Susturma rolü"), desc: T("Given to muted members. The role must deny sending messages in your channels.", "Susturulan üyelere verilir. Bu rolün kanallarında mesaj göndermeyi engellemesi gerekir."), def: "" },
+                    { id: "jailrole", type: "role", label: T("Jail role", "Hapis rolü"), def: "" },
+                    { id: "jailch", type: "channel", label: T("Jail channel", "Hapis kanalı"), def: "" },
           { id: "keep", type: "toggle", label: T("Remove other roles while jailed", "Hapisteyken diğer rolleri al"), def: true },
         ],
       },

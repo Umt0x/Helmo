@@ -17,7 +17,21 @@ export type Row =
   | (RowBase & { type: "text"; def: string; placeholder?: Txt })
   | (RowBase & { type: "slider"; def: number; min: number; max: number; unit?: Txt })
   | (RowBase & { type: "chips"; options: Txt[]; def: number[] })
-  | (RowBase & { type: "secret"; def: string });
+  | (RowBase & { type: "secret"; def: string })
+  /** Pick one of the server's real roles. The value is the role id ("" = none). */
+  | (RowBase & { type: "role"; def: string })
+  /** Pick one of the server's real channels. The value is the channel id ("" = none). */
+  | (RowBase & { type: "channel"; kind?: "text" | "voice"; def: string })
+  | (RowBase & { type: "textarea"; def: string; placeholder?: Txt });
+
+/** The server's real roles and channels, as reported by the bot. */
+export type Choices = {
+  roles: { id: string; name: string; color: number; managed: boolean }[];
+  channels: { id: string; name: string; type: number }[];
+};
+
+export const TEXT_CHANNEL_TYPES = [0, 5];
+export const VOICE_CHANNEL_TYPES = [2, 13];
 
 export type Stat = { label: Txt; value: string; sub?: Txt; glow?: Glow };
 

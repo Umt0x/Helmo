@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import clsx from "clsx";
 import { useI18n } from "@/i18n/provider";
 import type { ModActionKey, ModerationLog } from "@/lib/audit";
@@ -56,7 +57,7 @@ export function ModerationLogView({ log }: { log: ModerationLog }) {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-2">
-                  {[a.cols.time, a.cols.moderator, a.cols.action, a.cols.member, a.cols.reason].map((c) => (
+                  {[a.cols.case, a.cols.time, a.cols.moderator, a.cols.action, a.cols.member, a.cols.reason].map((c) => (
                     <th key={c} className="px-6 py-3 font-medium">
                       {c}
                     </th>
@@ -66,6 +67,15 @@ export function ModerationLogView({ log }: { log: ModerationLog }) {
               <tbody>
                 {log.entries.map((e) => (
                   <tr key={e.id} className="border-b border-border last:border-b-0 hover:bg-white/[0.02]">
+                    <td className="px-6 py-3.5 text-muted">
+                      {e.caseNo ? (
+                        <Link href={`/dashboard/punishments/records?q=${e.caseNo}`} className="font-medium text-foreground hover:underline">
+                          #{e.caseNo}
+                        </Link>
+                      ) : (
+                        dash
+                      )}
+                    </td>
                     {/* Formatted in the browser's time zone, so the server's clock must not decide the text. */}
                     <td className="whitespace-nowrap px-6 py-3.5 font-medium" suppressHydrationWarning>
                       {new Date(e.at).toLocaleString(locale, { dateStyle: "short", timeStyle: "short" })}

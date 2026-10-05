@@ -3,10 +3,12 @@ import { ChevronRight, LogOut } from "lucide-react";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { getLocale } from "@/i18n/server";
 import { guildIconUrl } from "@/lib/discord";
+import { refreshDevGuilds } from "@/lib/dev";
 import { getUserGuilds, requireUser } from "@/lib/session";
 
 export default async function ServersPage() {
   const user = await requireUser();
+  await refreshDevGuilds(user.id);
   const guilds = await getUserGuilds(user.id);
   const t = getDictionary(await getLocale());
 

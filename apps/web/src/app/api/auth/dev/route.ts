@@ -1,22 +1,17 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { botGuilds, bots, users } from "@/db/schema";
+import { users } from "@/db/schema";
+import { DEV_USER, realDevGuilds } from "@/lib/dev";
 import { createSession, saveLogin } from "@/lib/session";
 
-const DEV_USER = "000000000000000001";
 
 /** Development-only login so the panel can be used before a Discord app exists. */
 export async function POST() {
   if (process.env.NODE_ENV === "production") return new NextResponse("Not found", { status: 404 });
 
-  // The servers the test user's bots are really in, as reported by the bot runtime. Settings saved for
-  // these work with the real bot, because the ids match what Discord sends to it.
-  const real = await db
-    .selectDistinct({ guildId: botGuilds.guildId, name: botGuilds.name, icon: botGuilds.icon })
-    .from(botGuilds)
-    .innerJoin(bots, eq(bots.id, botGuilds.botId))
-    .where(eq(bots.ownerId, DEV_USER));
+  // The servers the test user's bots are really in: settings saved for them match the ids Discord sends to the bot.
+  const real = await realDevGuilds();
 
   // With no real servers yet, fall back to made-up ones so the panel can still be explored.
   const fake = [

@@ -139,6 +139,8 @@ export const modActions = pgTable(
     moderatorName: text("moderator_name"),
     reason: text("reason"),
     durationMin: integer("duration_min"),
+    /** Per-server case number ("sicil"): #1, #2... Only punishments get one. */
+    caseNo: integer("case_no"),
     /** True when the warn system punished someone automatically. */
     auto: boolean("auto").notNull().default(false),
     at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
@@ -159,4 +161,58 @@ export const botGuilds = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.botId, t.guildId] })],
+);
+
+/** Next case number per server. Incremented atomically so two moderators at once never share a number. */
+export const guildCounters = pgTable("guild_counters", {
+  guildId: text("guild_id").primaryKey(),
+  caseSeq: integer("case_seq").notNull().default(0),
+});
+
+/** Roles and channels of each server as the bot sees them, so the panel can offer real pickers. */
+export const guildRoles = pgTable(
+  "guild_roles",
+  {
+    guildId: text("guild_id").notNull(),
+    roleId: text("role_id").notNull(),
+    name: text("name").notNull(),
+    position: integer("position").notNull().default(0),
+    color: integer("color").notNull().default(0),
+    /** Managed roles (bot / integration roles) cannot be given to members. */
+    managed: boolean("managed").notNull().default(false),
+  },
+  (t) => [primaryKey({ columns: [t.guildId, t.roleId] })],
+);
+
+export const guildChannels = pgTable(
+  "guild_channels",
+  {
+    guildId: text("guild_id").notNull(),
+    channelId: text("channel_id").notNull(),
+    name: text("name").notNull(),
+    /** Discord channel type: 0 text, 2 voice, 4 category, 5 announcement, 13 stage... */
+    type: integer("type").notNull(),
+    position: integer("position").notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.guildId, t.channelId] })],
+);
+
+/** Role-based mutes. The bot that muted someone takes the role off again when `expiresAt` passes. */
+export const mutes = pgTable(
+  "mutes",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    guildId: text("guild_id").notNull(),
+    userId: text("user_id").notNull(),
+    botId: uuid("bot_id")
+      .notNull()
+      .references(() => bots.id, { onDelete: "cascade" }),
+    roleId: text("role_id").notNull(),
+    caseNo: integer("case_no"),
+    /** Null means until someone unmutes. */
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    active: boolean("active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("mutes_active_expiry_idx").on(t.active, t.expiresAt)],
 );

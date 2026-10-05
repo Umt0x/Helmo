@@ -1,5 +1,5 @@
 import "server-only";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { guildSettings } from "@/db/schema";
 import { pages } from "@/content";
@@ -7,6 +7,7 @@ import { COMMAND_DEFAULTS, sanitizeCommands } from "@/content/commands";
 import { GUARD_DEFAULTS, sanitizeGuard } from "@/content/guard";
 import type { Row } from "@/content/types";
 import { MASK, defaultsFor, sanitizeRows } from "@/content/validate";
+import { guildChoices } from "./choices";
 import { encryptSecret, isEncrypted } from "./crypto";
 
 export const GUARD_PAGE = "guard/overview";
@@ -59,6 +60,16 @@ export async function saveSettings(
   } else {
     const rows = rowsOf(page);
     const clean = sanitizeRows(rows, input);
+    // A role or channel id must belong to THIS server: never trust an id the browser sent.
+    if (rows.some((r) => r.type === "role" || r.type === "channel")) {
+      const choices = await guildChoices(guildId);
+      const roleIds = new Set(choices.roles.map((r) => r.id));
+      const channelIds = new Set(choices.channels.map((c) => c.id));
+      for (const r of rows) {
+        if (r.type === "role" && !roleIds.has(clean[r.id] as string)) clean[r.id] = "";
+        if (r.type === "channel" && !channelIds.has(clean[r.id] as string)) clean[r.id] = "";
+      }
+    }
     const stored = await readRaw(guildId, page);
     data = { ...clean };
     shown = { ...clean };
@@ -86,5 +97,7 @@ export async function saveSettings(
       target: [guildSettings.guildId, guildSettings.page],
       set: { data, updatedBy: userId, updatedAt: new Date() },
     });
+  // Tell the bot runtime right away so the change applies at once instead of after its cache runs out.
+  await db.execute(sql`select pg_notify('settings_changed', ${guildId})`);
   return shown;
 }

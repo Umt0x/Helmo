@@ -8,6 +8,7 @@ export type ModActionKey = (typeof MOD_ACTIONS)[number];
 
 export type ModerationEntry = {
   id: number;
+  caseNo: number | null;
   at: string;
   action: string;
   moderator: string;
@@ -44,6 +45,7 @@ export async function moderationLog(guildId: string, limit = 50): Promise<Modera
   return {
     entries: rows.map((r) => ({
       id: r.id,
+      caseNo: r.caseNo,
       at: r.at.toISOString(),
       action: r.action,
       moderator: r.moderatorName ?? r.moderatorId,
