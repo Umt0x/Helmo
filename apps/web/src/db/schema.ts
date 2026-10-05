@@ -1,4 +1,4 @@
-import { boolean, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, jsonb, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 /** A Helmo account. The id is the user's Discord id. */
 export const users = pgTable("users", {
@@ -37,3 +37,16 @@ export const userGuilds = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type UserGuild = typeof userGuilds.$inferSelect;
+
+/** One row per server and settings page. `data` is validated before it is stored. */
+export const guildSettings = pgTable(
+  "guild_settings",
+  {
+    guildId: text("guild_id").notNull(),
+    page: text("page").notNull(),
+    data: jsonb("data").$type<Record<string, unknown>>().notNull(),
+    updatedBy: text("updated_by").references(() => users.id, { onDelete: "set null" }),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.guildId, t.page] })],
+);

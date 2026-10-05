@@ -156,7 +156,7 @@ export const en = {
     switchServer: "Switch server",
   },
   placeholder: { title: "Coming soon", body: "This page is being built. It will be available in an upcoming update." },
-  common: { language: "Language", account: "Account", save: "Save changes", reset: "Reset", saved: "Changes saved", unsaved: "You have unsaved changes" },
+  common: { language: "Language", account: "Account", save: "Save changes", reset: "Reset", saved: "Changes saved", unsaved: "You have unsaved changes", saving: "Saving...", saveFailed: "Could not save. Please try again.", sessionExpired: "Your session expired. Please sign in again." },
   months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
 };
 

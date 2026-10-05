@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import { Ban, Link2, Bot, MessageSquareWarning, ShieldAlert, Swords, type LucideIcon } from "lucide-react";
 import clsx from "clsx";
 import { useI18n } from "@/i18n/provider";
+import { type GuardAction, type GuardKey, type GuardModule, type GuardSettings } from "@/content/guard";
+import { SaveBar } from "./save-bar";
 import { Toggle } from "./toggle";
+import { useSaved } from "./use-saved";
 
-type ModuleKey = "antiRaid" | "antiNuke" | "antiSpam" | "antiLink" | "antiBot" | "antiMention";
-type ActionKey = "ban" | "kick" | "mute" | "strip";
-type ModuleState = { enabled: boolean; threshold: number | null; action: ActionKey };
-
-const META: { key: ModuleKey; icon: LucideIcon }[] = [
+const META: { key: GuardKey; icon: LucideIcon }[] = [
   { key: "antiRaid", icon: Swords },
   { key: "antiNuke", icon: ShieldAlert },
   { key: "antiSpam", icon: MessageSquareWarning },
@@ -19,24 +18,17 @@ const META: { key: ModuleKey; icon: LucideIcon }[] = [
   { key: "antiMention", icon: Ban },
 ];
 
-const INITIAL: Record<ModuleKey, ModuleState> = {
-  antiRaid: { enabled: true, threshold: 10, action: "kick" },
-  antiNuke: { enabled: true, threshold: 3, action: "strip" },
-  antiSpam: { enabled: true, threshold: 8, action: "mute" },
-  antiLink: { enabled: false, threshold: null, action: "mute" },
-  antiBot: { enabled: true, threshold: null, action: "kick" },
-  antiMention: { enabled: false, threshold: 5, action: "mute" },
-};
-
-export function GuardPage() {
+export function GuardPage({ initial }: { initial: GuardSettings }) {
   const { t } = useI18n();
   const g = t.guard;
-  const [state, setState] = useState(INITIAL);
+  const form = useSaved("guard/overview", initial);
+  const state = form.values;
 
-  const patch = (key: ModuleKey, change: Partial<ModuleState>) =>
-    setState((prev) => ({ ...prev, [key]: { ...prev[key], ...change } }));
+  const patch = (key: GuardKey, change: Partial<GuardModule>) =>
+    form.change((prev) => ({ ...prev, [key]: { ...prev[key], ...change } }));
 
   return (
+    <>
     <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
       {META.map(({ key, icon: Icon }) => {
         const m = state[key];
@@ -83,10 +75,10 @@ export function GuardPage() {
                 <span className="text-muted">{g.action}</span>
                 <select
                   value={m.action}
-                  onChange={(e) => patch(key, { action: e.target.value as ActionKey })}
+                  onChange={(e) => patch(key, { action: e.target.value as GuardAction })}
                   className="field"
                 >
-                  {(Object.keys(g.actions) as ActionKey[]).map((a) => (
+                  {(Object.keys(g.actions) as GuardAction[]).map((a) => (
                     <option key={a} value={a}>
                       {g.actions[a]}
                     </option>
@@ -98,5 +90,14 @@ export function GuardPage() {
         );
       })}
     </div>
+    <SaveBar
+      dirty={form.dirty}
+      saving={form.saving}
+      justSaved={form.justSaved}
+      error={form.error}
+      onSave={form.save}
+      onReset={form.reset}
+    />
+    </>
   );
 }

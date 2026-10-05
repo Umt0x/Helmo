@@ -158,6 +158,6 @@ export const tr: Dictionary = {
     switchServer: "Sunucu değiştir",
   },
   placeholder: { title: "Çok yakında", body: "Bu sayfa hazırlanıyor. Yakında bir güncellemeyle eklenecek." },
-  common: { language: "Dil", account: "Hesap", save: "Değişiklikleri kaydet", reset: "Sıfırla", saved: "Değişiklikler kaydedildi", unsaved: "Kaydedilmemiş değişiklikler var" },
+  common: { language: "Dil", account: "Hesap", save: "Değişiklikleri kaydet", reset: "Sıfırla", saved: "Değişiklikler kaydedildi", unsaved: "Kaydedilmemiş değişiklikler var", saving: "Kaydediliyor...", saveFailed: "Kaydedilemedi. Lütfen tekrar dene.", sessionExpired: "Oturumun sona erdi. Lütfen tekrar giriş yap." },
   months: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"],
 };

@@ -87,3 +87,11 @@ export async function saveLogin(
     if (guilds.length) await tx.insert(userGuilds).values(guilds.map((g) => ({ ...g, userId: user.id })));
   });
 }
+
+/** For panel pages: the logged-in user and the server they picked, or a redirect. */
+export async function requirePanelGuild() {
+  const user = await requireUser();
+  const guild = await getCurrentGuild(user.id);
+  if (!guild) redirect("/servers");
+  return { user, guild };
+}

@@ -155,7 +155,7 @@ export const corePages: Record<string, PageDef> = {
         ),
         glow: "amber",
         rows: [
-          { id: "token", type: "secret", label: T("Token", "Token"), def: "MTIzNDU2Nzg5MDEyMzQ1Njc4OQ.Gx1y2z.example-token-do-not-use" },
+          { id: "token", type: "secret", label: T("Token", "Token"), def: "" },
           { id: "app", type: "text", label: T("Application ID", "Uygulama ID"), def: "123456789012345678" },
         ],
       },

@@ -8,6 +8,13 @@
       "when": 1791222130948,
       "tag": "0000_brown_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791222840203,
+      "tag": "0001_glossy_doctor_doom",
+      "breakpoints": true
     }
   ]
 }

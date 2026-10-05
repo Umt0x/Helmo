@@ -4,25 +4,10 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import clsx from "clsx";
 import { useI18n } from "@/i18n/provider";
+import { COMMANDS, type Category, type CommandSettings } from "@/content/commands";
+import { SaveBar } from "./save-bar";
 import { Toggle } from "./toggle";
-
-type Category = "moderation" | "utility" | "fun" | "economy";
-type Command = { name: string; category: Category; cooldown: number; enabled: boolean };
-
-const INITIAL: Command[] = [
-  { name: "ban", category: "moderation", cooldown: 3, enabled: true },
-  { name: "kick", category: "moderation", cooldown: 3, enabled: true },
-  { name: "mute", category: "moderation", cooldown: 3, enabled: true },
-  { name: "warn", category: "moderation", cooldown: 2, enabled: true },
-  { name: "clear", category: "moderation", cooldown: 5, enabled: false },
-  { name: "userinfo", category: "utility", cooldown: 5, enabled: true },
-  { name: "serverinfo", category: "utility", cooldown: 5, enabled: true },
-  { name: "avatar", category: "utility", cooldown: 3, enabled: true },
-  { name: "8ball", category: "fun", cooldown: 4, enabled: true },
-  { name: "meme", category: "fun", cooldown: 10, enabled: false },
-  { name: "balance", category: "economy", cooldown: 3, enabled: true },
-  { name: "daily", category: "economy", cooldown: 86400, enabled: true },
-];
+import { useSaved } from "./use-saved";
 
 const CATEGORIES: Category[] = ["moderation", "utility", "fun", "economy"];
 
@@ -30,10 +15,14 @@ function formatCooldown(seconds: number) {
   return seconds >= 3600 ? `${Math.round(seconds / 3600)}h` : `${seconds}s`;
 }
 
-export function CommandsPage() {
+export function CommandsPage({ initial }: { initial: CommandSettings }) {
   const { t } = useI18n();
   const c = t.commands;
-  const [commands, setCommands] = useState(INITIAL);
+  const form = useSaved("commands/list", initial);
+  const commands = useMemo(
+    () => COMMANDS.map((cmd) => ({ ...cmd, enabled: form.values[cmd.name] ?? cmd.enabled })),
+    [form.values],
+  );
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<Category | "all">("all");
 
@@ -46,8 +35,7 @@ export function CommandsPage() {
     );
   }, [commands, query, category, c.descriptions]);
 
-  const toggle = (name: string, enabled: boolean) =>
-    setCommands((prev) => prev.map((cmd) => (cmd.name === name ? { ...cmd, enabled } : cmd)));
+  const toggle = (name: string, enabled: boolean) => form.change((prev) => ({ ...prev, [name]: enabled }));
 
   const chip = (active: boolean) =>
     clsx(
@@ -98,6 +86,14 @@ export function CommandsPage() {
           </div>
         ))}
       </div>
+      <SaveBar
+        dirty={form.dirty}
+        saving={form.saving}
+        justSaved={form.justSaved}
+        error={form.error}
+        onSave={form.save}
+        onReset={form.reset}
+      />
     </>
   );
 }

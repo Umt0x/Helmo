@@ -1,14 +1,15 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
-import { Check, Copy, Eye, EyeOff, Plus, RotateCcw } from "lucide-react";
+import { useState, type CSSProperties } from "react";
+import { Check, Copy, Eye, EyeOff, Plus } from "lucide-react";
 import clsx from "clsx";
 import { useI18n } from "@/i18n/provider";
 import type { Locale } from "@/i18n/config";
 import type { Cell, Glow, PageDef, Row, Section, Stat, Table, Tone, Txt } from "@/content/types";
+import { MASK, type Value } from "@/content/validate";
+import { SaveBar } from "./save-bar";
 import { Toggle } from "./toggle";
-
-type Value = boolean | number | string | number[];
+import { useSaved } from "./use-saved";
 
 const tx = (v: Txt, locale: Locale) => (typeof v === "string" ? v : v[locale]);
 
@@ -23,23 +24,18 @@ function glowClass(g?: Glow) {
   return g ? `glow-${g}` : "";
 }
 
-export function ConfigPage({ page }: { page: PageDef }) {
-  const { locale, t } = useI18n();
-  const initial = useMemo(() => {
-    const map: Record<string, Value> = {};
-    for (const s of page.sections) for (const r of s.rows ?? []) map[r.id] = r.def;
-    return map;
-  }, [page]);
-
-  const [values, setValues] = useState(initial);
-  const [saved, setSaved] = useState(initial);
-  const [justSaved, setJustSaved] = useState(false);
-  const dirty = JSON.stringify(values) !== JSON.stringify(saved);
-
-  const set = (id: string, v: Value) => {
-    setJustSaved(false);
-    setValues((p) => ({ ...p, [id]: v }));
-  };
+export function ConfigPage({
+  page,
+  pageKey,
+  initial,
+}: {
+  page: PageDef;
+  pageKey: string;
+  initial: Record<string, Value>;
+}) {
+  const { locale } = useI18n();
+  const form = useSaved(pageKey, initial);
+  const set = (id: string, v: Value) => form.change((p) => ({ ...p, [id]: v }));
 
   return (
     <>
@@ -63,37 +59,17 @@ export function ConfigPage({ page }: { page: PageDef }) {
       )}
 
       {page.sections.map((s, i) => (
-        <SectionCard key={i} section={s} values={values} set={set} locale={locale} />
+        <SectionCard key={i} section={s} values={form.values} set={set} locale={locale} />
       ))}
 
-      {(dirty || justSaved) && (
-        <div className="fixed bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-3 rounded-full border border-border bg-tab px-3 py-2 pl-5 shadow-2xl">
-          {justSaved ? (
-            <span className="flex items-center gap-2 text-sm text-ok">
-              <Check className="size-4" />
-              {t.common.saved}
-            </span>
-          ) : (
-            <>
-              <span className="text-sm text-muted">{t.common.unsaved}</span>
-              <button className="btn btn-secondary" onClick={() => setValues(saved)}>
-                <RotateCcw className="size-3.5" />
-                {t.common.reset}
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={() => {
-                  setSaved(values);
-                  setJustSaved(true);
-                  setTimeout(() => setJustSaved(false), 2200);
-                }}
-              >
-                {t.common.save}
-              </button>
-            </>
-          )}
-        </div>
-      )}
+      <SaveBar
+        dirty={form.dirty}
+        saving={form.saving}
+        justSaved={form.justSaved}
+        error={form.error}
+        onSave={form.save}
+        onReset={form.reset}
+      />
     </>
   );
 }
@@ -245,11 +221,14 @@ function SecretField({ value, onChange }: { value: string; onChange: (v: string)
         type={show ? "text" : "password"}
         className="field w-72 font-mono"
         value={value}
+        // A stored secret is shown as a mask; typing starts a fresh value.
+        onFocus={() => value === MASK && onChange("")}
         onChange={(e) => onChange(e.target.value)}
       />
-      <button className="btn btn-secondary px-2.5" onClick={() => setShow(!show)} aria-label="toggle visibility">
+      <button className="btn btn-secondary px-2.5" onClick={() => setShow(!show)} aria-label="toggle visibility" disabled={value === MASK}>
         {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
       </button>
+      {value !== MASK && value !== "" && (
       <button
         className="btn btn-secondary px-2.5"
         aria-label="copy"
@@ -261,6 +240,7 @@ function SecretField({ value, onChange }: { value: string; onChange: (v: string)
       >
         {copied ? <Check className="size-4 text-ok" /> : <Copy className="size-4" />}
       </button>
+      )}
     </div>
   );
 }
