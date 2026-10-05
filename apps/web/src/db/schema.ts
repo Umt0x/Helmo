@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /** A Helmo account. The id is the user's Discord id. */
 export const users = pgTable("users", {
@@ -88,3 +88,15 @@ export const guildModules = pgTable(
 );
 
 export type Bot = typeof bots.$inferSelect;
+
+/** Latest "I am alive" signal per bot, written by the bot runtime. Drives the Hosting page. */
+export const botHeartbeats = pgTable("bot_heartbeats", {
+  botId: uuid("bot_id")
+    .primaryKey()
+    .references(() => bots.id, { onDelete: "cascade" }),
+  seenAt: timestamp("seen_at", { withTimezone: true }).notNull().defaultNow(),
+  pingMs: integer("ping_ms"),
+  guildCount: integer("guild_count").notNull().default(0),
+  workerId: text("worker_id"),
+  rssMb: integer("rss_mb"),
+});

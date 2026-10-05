@@ -6,3 +6,6 @@ node_modules/
 .claude/
 *.tsbuildinfo
 .DS_Store
+
+# Bot runtime stays local (private); never pushed with the website.
+/HelmoBot/

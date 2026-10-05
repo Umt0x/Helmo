@@ -102,3 +102,15 @@ describe("downgrading a plan", () => {
     expect(checkAddBot("basic", twelve, "guard")).toEqual({ ok: false, reason: "total", limit: 3 });
   });
 });
+
+describe("bot status from heartbeats", () => {
+  it("shows online only while the runtime keeps reporting", async () => {
+    const { effectiveStatus, HEARTBEAT_STALE_MS } = await import("@/lib/bots");
+    const now = Date.now();
+    expect(effectiveStatus("online", new Date(now - 5_000), now)).toBe("online");
+    expect(effectiveStatus("online", new Date(now - HEARTBEAT_STALE_MS - 1), now)).toBe("offline");
+    expect(effectiveStatus("online", null, now)).toBe("offline");
+    expect(effectiveStatus("error", null, now)).toBe("error");
+    expect(effectiveStatus("offline", new Date(now), now)).toBe("offline");
+  });
+});

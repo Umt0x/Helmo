@@ -1,7 +1,7 @@
 import "server-only";
 import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { bots, users, type Bot } from "@/db/schema";
+import { botHeartbeats, bots, users, type Bot } from "@/db/schema";
 import { isBotType } from "./bot-types";
 import { encryptSecret } from "./crypto";
 import { checkAddBot, planUsage, splitActive } from "./limits";
@@ -85,15 +85,35 @@ export async function removeBot(ownerId: string, botId: string): Promise<boolean
 }
 
 /** Everything the "Bots" page needs: the plan, usage numbers, and which bots may run. */
+/** A bot only counts as online while the runtime keeps reporting. If it goes quiet, it is offline. */
+export const HEARTBEAT_STALE_MS = 45_000;
+
+export function effectiveStatus(status: string, seenAt: Date | null, now = Date.now()): string {
+  if (status !== "online") return status;
+  return seenAt && now - seenAt.getTime() <= HEARTBEAT_STALE_MS ? "online" : "offline";
+}
+
 export async function botOverview(ownerId: string) {
   const [owner] = await db.select({ plan: users.plan }).from(users).where(eq(users.id, ownerId)).limit(1);
   const plan = planOf(owner?.plan ?? "basic");
   const list = await listBots(ownerId);
+  const beats = await db
+    .select({ botId: botHeartbeats.botId, seenAt: botHeartbeats.seenAt })
+    .from(botHeartbeats)
+    .innerJoin(bots, eq(bots.id, botHeartbeats.botId))
+    .where(eq(bots.ownerId, ownerId));
+  const seen = new Map(beats.map((b) => [b.botId, b.seenAt]));
   const { paused } = splitActive(plan, list);
   const pausedIds = new Set(paused.map((b) => b.id));
   return {
     plan,
     usage: planUsage(plan, list),
-    bots: list.map((b) => ({ id: b.id, type: b.type, name: b.name, status: b.status, paused: pausedIds.has(b.id) })),
+    bots: list.map((b) => ({
+      id: b.id,
+      type: b.type,
+      name: b.name,
+      status: effectiveStatus(b.status, seen.get(b.id) ?? null),
+      paused: pausedIds.has(b.id),
+    })),
   };
 }
