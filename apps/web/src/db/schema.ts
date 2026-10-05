@@ -145,3 +145,18 @@ export const modActions = pgTable(
   },
   (t) => [index("mod_actions_guild_target_idx").on(t.guildId, t.targetId, t.action, t.at)],
 );
+
+/** The servers each bot is in, kept up to date by the bot runtime. Lets the panel list real servers and, later, restrict a bot to its owner's servers. */
+export const botGuilds = pgTable(
+  "bot_guilds",
+  {
+    botId: uuid("bot_id")
+      .notNull()
+      .references(() => bots.id, { onDelete: "cascade" }),
+    guildId: text("guild_id").notNull(),
+    name: text("name").notNull(),
+    icon: text("icon"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.botId, t.guildId] })],
+);

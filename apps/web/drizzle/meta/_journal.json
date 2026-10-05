@@ -50,6 +50,13 @@
       "when": 1791227858139,
       "tag": "0006_overconfident_shatterstar",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791228565264,
+      "tag": "0007_loving_genesis",
+      "breakpoints": true
     }
   ]
 }
