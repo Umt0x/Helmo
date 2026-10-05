@@ -8,6 +8,8 @@ export const COMMANDS: CommandMeta[] = [
   { name: "mute", category: "moderation", cooldown: 3, enabled: true },
   { name: "warn", category: "moderation", cooldown: 2, enabled: true },
   { name: "clear", category: "moderation", cooldown: 5, enabled: false },
+  { name: "ping", category: "utility", cooldown: 3, enabled: true },
+  { name: "help", category: "utility", cooldown: 3, enabled: true },
   { name: "userinfo", category: "utility", cooldown: 5, enabled: true },
   { name: "serverinfo", category: "utility", cooldown: 5, enabled: true },
   { name: "avatar", category: "utility", cooldown: 3, enabled: true },

@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { bigserial, boolean, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 /** A Helmo account. The id is the user's Discord id. */
 export const users = pgTable("users", {
@@ -99,4 +99,27 @@ export const botHeartbeats = pgTable("bot_heartbeats", {
   guildCount: integer("guild_count").notNull().default(0),
   workerId: text("worker_id"),
   rssMb: integer("rss_mb"),
+  /** When the bot last came online, so the panel can show uptime. */
+  upSince: timestamp("up_since", { withTimezone: true }),
+  /** How late the worker's event loop runs; a rising number means the worker is overloaded. */
+  loopLagMs: integer("loop_lag_ms"),
 });
+
+/** One row per command a bot handled. Feeds "commands today", success rate and response time. */
+export const commandEvents = pgTable(
+  "command_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    botId: uuid("bot_id")
+      .notNull()
+      .references(() => bots.id, { onDelete: "cascade" }),
+    guildId: text("guild_id"),
+    command: text("command").notNull(),
+    /** ok | failed | unavailable | busy | locked | disabled */
+    outcome: text("outcome").notNull(),
+    durationMs: integer("duration_ms"),
+    errorId: text("error_id"),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("command_events_bot_at_idx").on(t.botId, t.at)],
+);

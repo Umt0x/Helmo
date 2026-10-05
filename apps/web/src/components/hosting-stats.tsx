@@ -1,37 +1,38 @@
 "use client";
 
-import { useMemo } from "react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import Link from "next/link";
 import { Activity, Clock, Cpu, MemoryStick, Server, Terminal, type LucideIcon } from "lucide-react";
+import clsx from "clsx";
 import { useI18n } from "@/i18n/provider";
-import { buildResources } from "@/lib/mock-data";
+import { BOT_TYPES, type BotType } from "@/lib/bot-types";
+import { formatDuration, type HostingData } from "@/lib/hosting-summary";
 
-type Glow = "glow-green" | "glow-cyan" | "glow-amber";
+type Glow = "glow-green" | "glow-cyan" | "glow-amber" | "glow-red";
 
-export function HostingStats() {
-  const { t } = useI18n();
+export function HostingStats({ data }: { data: HostingData }) {
+  const { t, locale } = useI18n();
   const h = t.hosting;
-  const data = useMemo(() => buildResources(24, 3), []);
+  const { summary: s, commands: c, bots } = data;
+  const dash = "—";
 
+  const allUp = s.total > 0 && s.online === s.total;
   const cards: { icon: LucideIcon; label: string; value: string; sub: string; glow: Glow }[] = [
-    { icon: Activity, label: h.ping, value: "42 ms", sub: "WebSocket", glow: "glow-green" },
-    { icon: Clock, label: h.uptime, value: "14d 6h", sub: "99.98%", glow: "glow-green" },
-    { icon: Cpu, label: h.cpu, value: "27%", sub: `${h.limit}: 100%`, glow: "glow-cyan" },
-    { icon: MemoryStick, label: h.ram, value: "412 MB", sub: `${h.limit}: 1 GB`, glow: "glow-amber" },
-    { icon: Server, label: h.guilds, value: "3 / 10", sub: `${h.node}: eu-1`, glow: "glow-cyan" },
-    { icon: Terminal, label: h.commandsToday, value: "8,421", sub: "+6.2%", glow: "glow-green" },
+    { icon: Activity, label: h.botsOnline, value: `${s.online} / ${s.total}`, sub: allUp ? h.allHealthy : s.online === 0 ? h.noneOnline : h.someDown, glow: allUp ? "glow-green" : s.online === 0 ? "glow-red" : "glow-amber" },
+    { icon: Activity, label: h.ping, value: s.avgPingMs === null ? dash : `${s.avgPingMs} ms`, sub: "WebSocket", glow: "glow-cyan" },
+    { icon: Clock, label: h.uptime, value: s.longestUptimeSec === null ? dash : formatDuration(s.longestUptimeSec), sub: h.sinceLastStart, glow: "glow-green" },
+    { icon: Server, label: h.servers, value: String(s.servers), sub: h.acrossBots, glow: "glow-cyan" },
+    { icon: MemoryStick, label: h.memory, value: s.memoryMb ? `${s.memoryMb} MB` : dash, sub: s.maxLoopLagMs === null ? h.workers : `${h.lag}: ${s.maxLoopLagMs} ms`, glow: "glow-amber" },
+    {
+      icon: Terminal,
+      label: h.commands24h,
+      value: c.total.toLocaleString(locale),
+      sub: c.successRate === null ? h.noCommands : `${c.successRate}% ${h.success} · ${c.avgMs} ms ${h.avg}`,
+      glow: c.successRate !== null && c.successRate < 95 ? "glow-amber" : "glow-green",
+    },
   ];
 
   return (
     <>
-      <div className="flex items-center gap-3">
-        <h2 className="text-lg font-semibold">{h.title}</h2>
-        <span className="flex items-center gap-1.5 rounded-full bg-ok/15 px-2.5 py-0.5 text-xs font-medium text-ok">
-          <span className="size-1.5 rounded-full bg-ok" />
-          {h.online}
-        </span>
-      </div>
-
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map(({ icon: Icon, label, value, sub, glow }) => (
           <div key={label} className={`card ${glow} p-5`}>
@@ -45,44 +46,58 @@ export function HostingStats() {
         ))}
       </div>
 
-      <section className="card glow-cyan p-6">
-        <div className="flex items-center gap-5">
-          <h2 className="text-[15px] font-semibold">{h.resourceTraffic}</h2>
-          <div className="flex items-center gap-4 text-xs text-muted">
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-info" />
-              CPU
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="size-2 rounded-full bg-warn" />
-              RAM
-            </span>
+      <section className="card">
+        <header className="border-b border-border px-6 py-4">
+          <h2 className="flex items-center gap-2 text-[15px] font-semibold">
+            <Cpu className="size-4 text-muted" />
+            {h.perBot}
+          </h2>
+        </header>
+
+        {bots.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-muted">
+            <p>{h.noBots}</p>
+            <Link href="/dashboard/bot-settings/bots" className="btn btn-primary mt-4 inline-flex">
+              {h.addBot}
+            </Link>
           </div>
-        </div>
-        <div className="mt-6 h-[260px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="cpu" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#22d3ee" stopOpacity={0.4} />
-                  <stop offset="100%" stopColor="#22d3ee" stopOpacity={0.02} />
-                </linearGradient>
-                <linearGradient id="ram" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f5a524" stopOpacity={0.35} />
-                  <stop offset="100%" stopColor="#f5a524" stopOpacity={0.02} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "#9398a1", fontSize: 12 }} minTickGap={32} tickMargin={12} />
-              <Tooltip
-                contentStyle={{ background: "#1d1f23", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, fontSize: 12 }}
-                formatter={(v, name) => [`${v}%`, name === "cpu" ? "CPU" : "RAM"]}
-              />
-              <Area type="monotone" dataKey="cpu" stroke="#22d3ee" strokeWidth={1.5} fill="url(#cpu)" />
-              <Area type="monotone" dataKey="ram" stroke="#f5a524" strokeWidth={1.5} fill="url(#ram)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-2">
+                  {[h.table.bot, h.table.type, h.table.status, h.table.ping, h.table.servers, h.table.worker, h.table.signal].map((col) => (
+                    <th key={col} className="px-6 py-3 font-medium">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {bots.map((b) => (
+                  <tr key={b.id} className="border-b border-border last:border-b-0 hover:bg-white/[0.02]">
+                    <td className="px-6 py-3.5 font-medium">{b.name}</td>
+                    <td className="px-6 py-3.5 text-muted">{b.type in BOT_TYPES ? BOT_TYPES[b.type as BotType].label[locale] : b.type}</td>
+                    <td className="px-6 py-3.5">
+                      {b.paused ? (
+                        <span className="rounded-full bg-warn/15 px-2.5 py-0.5 text-xs font-medium text-warn">{t.bots.paused}</span>
+                      ) : (
+                        <span className="flex items-center gap-1.5">
+                          <span className={clsx("size-1.5 rounded-full", b.status === "online" ? "bg-ok" : b.status === "error" ? "bg-bad" : "bg-white/30")} />
+                          {t.bots.statuses[b.status] ?? b.status}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-3.5 text-muted tabular-nums">{b.status === "online" && b.pingMs !== null ? `${b.pingMs} ms` : dash}</td>
+                    <td className="px-6 py-3.5 text-muted tabular-nums">{b.status === "online" ? b.guilds : dash}</td>
+                    <td className="px-6 py-3.5 text-muted">{b.worker ?? dash}</td>
+                    <td className="px-6 py-3.5 text-muted">{b.seenAgoSec === null ? dash : `${formatDuration(b.seenAgoSec)} ${h.ago}`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </>
   );

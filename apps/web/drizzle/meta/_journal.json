@@ -29,6 +29,13 @@
       "when": 1791226131541,
       "tag": "0003_aspiring_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791226856108,
+      "tag": "0004_shocking_lake",
+      "breakpoints": true
     }
   ]
 }
