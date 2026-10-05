@@ -123,3 +123,25 @@ export const commandEvents = pgTable(
   },
   (t) => [index("command_events_bot_at_idx").on(t.botId, t.at)],
 );
+
+/** Every moderation action the bot takes: warn, ban, kick, mute, clear. Feeds warn counts and the Audit Log pages. */
+export const modActions = pgTable(
+  "mod_actions",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    guildId: text("guild_id").notNull(),
+    action: text("action").notNull(),
+    targetId: text("target_id"),
+    /** Names as they were at the time, so the Audit Log reads well without asking Discord. */
+    targetName: text("target_name"),
+    /** The member who ran the command, or the bot's own id for automatic actions. */
+    moderatorId: text("moderator_id").notNull(),
+    moderatorName: text("moderator_name"),
+    reason: text("reason"),
+    durationMin: integer("duration_min"),
+    /** True when the warn system punished someone automatically. */
+    auto: boolean("auto").notNull().default(false),
+    at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("mod_actions_guild_target_idx").on(t.guildId, t.targetId, t.action, t.at)],
+);

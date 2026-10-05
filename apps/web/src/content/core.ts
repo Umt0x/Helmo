@@ -186,28 +186,6 @@ export const corePages: Record<string, PageDef> = {
       },
     ],
   },
-  "audit-log/moderation": {
-    stats: [
-      { label: T("Bans (7d)", "Yasak (7g)"), value: "14", glow: "red" },
-      { label: T("Kicks (7d)", "Atılan (7g)"), value: "9", glow: "amber" },
-      { label: T("Mutes (7d)", "Susturma (7g)"), value: "63", glow: "amber" },
-      { label: T("Warns (7d)", "Uyarı (7g)"), value: "128", glow: "cyan" },
-    ],
-    sections: [
-      {
-        title: T("Moderation actions", "Moderasyon işlemleri"),
-        table: {
-          cols: [T("Time", "Zaman"), T("Moderator", "Moderatör"), T("Action", "İşlem"), T("Member", "Üye"), T("Reason", "Sebep")],
-          rows: [
-            ["14:32", "umt", bad("Ban", "Yasak"), "spammer#0001", T("Invite spam", "Davet spamı")],
-            ["13:41", "kerem", warn("Mute", "Susturma"), "toxic_user", T("Harassment", "Taciz")],
-            ["12:20", "aylin", info("Warn", "Uyarı"), "joker42", T("Off-topic", "Konu dışı")],
-            ["11:02", "umt", warn("Kick", "Atma"), "bot_acc9", T("Suspicious account", "Şüpheli hesap")],
-          ],
-        },
-      },
-    ],
-  },
   "audit-log/members": {
     sections: [
       {
